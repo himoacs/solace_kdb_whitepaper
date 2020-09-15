@@ -206,6 +206,8 @@ Moreover, there are events that can lead to data spikes and impact applications.
 
 As discussed earlier, processes directly communicating with each other leads to a tightly coupled architecture where each process is dependent on one or more process. Such an architecture gets harder to maintain as it scales since it requires more coordination between processes. 
 
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/tight_coupling.png)
+
 In the context of kdb+, sharing data between your multiple ticker plants, RDBs and stats processes means that they are dependent on each other. Stats process responsible for consuming raw data directly from an RDB and generating stats on that raw data makes it depending on the RDB. If something were to happen to RDB process, it will also impact the stats process. Additionally, if there was a change required in the RDB process, your developers will need to ensure that it doesn't impact any downstream processes that are dependent on the RDB process. This prevents you from making quick changes to your architecture. Each change that you do make introduces risks to downstream processes which is not desirable.
 
 Instead, each *q* process whether it be an RDB or stats process, should communicate via an event broker using pub/sub messaging pattern. The ticker plant can publish data to the event broker without worrying about connection details of downstream subscribers and their subscriptions. Both RDB and stats process can subscribe for updates from the event broker without knowing a thing about the ticker plant. The stats process can generate minutely stats and then republish that data to event broker on a different topic allowing other processes to subscribe to those stats.
@@ -222,6 +224,8 @@ This can be a blocker sometimes for other teams trying to retrieve data or write
 You might argue that your kdb+ stack is well contained and doesn't require much interaction with other applications, so it doesn't make sense to over engineer it. While that may be true, you should always ensure your architecture is flexible and future proof. If another team is interested in the data stored in your kdb+ database tomorrow, will they be able to easily retrieve it?
 
 For example, your company might have IoT devices producing a lot of timeseries data that needs to be captured in your kdb+ database. IoT devices typically use lightweight MQTT protocol to transfer events. Using an event broker that supports MQTT protocol would allow you to easily push data from your IoT devices to the event broker and then persist it in a kdb+ database to be analyzed in realtime or later. 
+
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/integration.png)
 
 Companies spend a lot of resources implementing a kdb+ solution and store large quantitates of valuable data into it. Using an event broker, puts the kdb+ estate at the center of your big data ecosystem and allows different teams to leverage its capabilities by integrating with it.  
 
@@ -243,13 +247,19 @@ Modern event brokers can be deployed in different regions (NY vs LDN) and enviro
 
 Using an event mesh to distribute your data out of colo to your own datacenter(s) in different regions allows you a cost-effective way to store your tick data in your core tick data store in your datacenter instead of at colos. You can consolidate data from different colos in different regions into your central tick data store. 
 
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/colo.png)
+
 Conversely, you may want to localize your central tick data stores for your clients, such as researchers, spread across the globe to provide them with access to data locally and speed up their queries. Again, this can be done by distributing the data over an event mesh formed by event brokers deployed locally. 
+
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/users.png)
 
 #### Cloud migration
 
 In the last decade, there has been a strong push to adopt cloud across industries. While many companies of various sizes and in different industries have chosen to fully adopt cloud, global financial companies are still in the process of migrating due to their size and strict regulatory requirements. With the rise in cloud adoption, there has been a rise in multiple vendors offering cloud services as well, mainly AWS, GCP, and Azure. Again, many companies have decided to pick one of these popular options, but other companies have chosen to go with either hybrid cloud or multi-cloud route. 
 
 With hybrid cloud, companies still have their own datacenter but limit its use to critical applications only. For non-critical applications, they have chosen to deploy their applications in cloud. Other companies are a little more paranoid or are heavily regulated so they have decided to go with not just one but at least two cloud providers to avoid depending heavily on just one. As you can see, this adds more complexity on how data needs to be shared across an organization. No longer do you only have to worry about applications being deployed in different geographical regions but also across multiple environments. Again, this is where you need an event mesh (see above) which modern event brokers support. 
+
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/kdb_event_mesh.png)
 
 As you decide to migrate your applications slowly from on-prem to cloud, you will also need to run two instances of your application in parallel for some time period. Again, you will need an event broker to share the data easily between the two processes. 
 
@@ -260,6 +270,8 @@ Data should only traverse from one environment to another if it is requested. Yo
 #### Restricting access
 
 If you have worked with market data before, you know how expensive it can be and how many market data licenses you need to be aware of and navigate when providing users and applications access to real-time market data. Market data access is limited by strict licenses so one needs to be careful of not just which applications are using the data but who has **potential** access to the data to avoid fees by data vendors and exchanges. 
+
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/acls.png)
 
 Only the applications that require the data and are authorized to access the data should be able to consume that data. This is where *Access Control Lists (ACLs)* come handy. Event brokers allow you to lock down exactly which applications have access to the data. You can control what topics publishers can publish to and what topics subscribers can subscribe from to make sure no one is accessing what they are not authorized to access. For example, if all the market data in my organization is published to topics of this topology: `EQ/{region}/{exchange}/{stock}` then I can restrict applications so they can only consume US's equities data by limiting them to only consume from `EQ/US/>` hierarchy. Additionally, I can provider a subscriber access to only data from New York Stock Exchange (NYSE) by only granting it access to topic: `EQ/US/NYSE/>`. 
 
