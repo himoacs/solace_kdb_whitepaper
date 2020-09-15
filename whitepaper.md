@@ -309,11 +309,11 @@ On Solace Cloud, we can create a free service very quickly by selecting the 'fre
 - Shared tenancy (as opposed to dedicated)
 - Single node deployment (as opposed to high availability)
 
-<insert_image_here>
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/solace_cloud_create_service.png)
 
 Because we have shared tenancy, the service will be up in just few seconds. 
 
-<insert_image_here>
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/demo_service_overview.png)
 
 Now that we have a PubSub+ instance up and running, we are ready to install the Solace interface to kdb+. 
 
