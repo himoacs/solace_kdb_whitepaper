@@ -1,6 +1,8 @@
-## Bringing the power of pub/sub messaging to kdb+
+# Bringing the power of pub/sub messaging to kdb+
 
 It wouldn't be absurd to assume that most of us have heard or are familiar with message brokers. Afterall, they have been around for decades and are deployed in most, if not all, major companies. However, like any technology that has been around for so long, message brokers have seen their fair share of transformation, especially in their capabilities and their usecases.
+
+In this white paper, I would like to cover different ways applications communicate with each others, pub/sub messaging pattern and its advantages, benefits of implementing pub/sub with kdb+, and finally, show how you can implement pub/sub with kdb+ using Solace's PubSub+ event broker.
 
 Message brokers, or event brokers as they are commonly known these days, form the middle layer responsible for **transporting** your data. They are different from your databases because they are not meant for long-term storage. Event brokers specialize in **routing** your data to the interested applications. Essentially, event brokers allow your applications to easily communicate with each other without having to worry about data routing, message loss, protocol translation, authentication/authorization to name a few.
 
@@ -10,7 +12,7 @@ At this point, you might be asking yourself:
 
 Let's discuss both.
 
-### Why do applications need to communicate with each other?
+## Why do applications need to communicate with each other?
 
 We have all heard of monolithic applications. These are large pieces of software that barely had to worry about other applications and were mostly self-sufficient. Most, if not all of the business logic and interactions with other applications, was encapsulated in this one gigantic application. The monolithic application architecture had its advantages as it allowed you full control the application without having to rely on other teams. It also simplified some things since your application didn't have to worry about interacting with other applications. When it came to deployment, all you had to do was roll out this one (albeit giant) piece of code. 
 
@@ -400,16 +402,6 @@ Let's publish "Hello, world" to topic: `data/generic/hello`
 ### Destroying session
 ```
 
-Let's send another message but this time we will send it to topic: `EQ/US/NYSE/AAPL` and change the payload to JSON containing pricing data for `AAPL`:
-
-```
-(kdb) [ec2-user@ip-172-31-70-197 examples]$ q sol_pub_direct.q -topic "EQ/US/NYSE/AAPL" -data "{"date":"2020-06-08","symbol":"AAPL","askPrice":260.145,"bidSize":790,"tradeSize":340,"exchange":"NASDAQ","currency":"USD","time":"15:42:13.805925-04:00","tradePrice":256.93332,"askSize":760,"bidPrice":253.72165}"
-### Sending message
-`EQ/US/NYSE/AAPL`{date:2020-06-08,symbol:AAPL,askPrice:260.145,bidSize:790,tradeSize:340,exchange:NASDAQ,currency:USD,time:15:42:13.805925-04:00,tradePrice:256.93332,askSize:760,bidPrice:253.72165}
-### Destroying session
-```
-
-Note that in this example, we have used a more description topic hierarchy to describe our data.
 
 Similarly, we can publish a *guaranteed message* by calling the function: *.solace.SendPersistent* as shown in `[sol_pub_persist.q](https://github.com/KxSystems/solace/tree/master/examples#sol_pub_persistq)` example.
 
@@ -434,7 +426,7 @@ Let's create a queue called `hello_world`.
 
 We can confirm that our queue was creating via PubSub+ UI. 
 
-<insert_queue_create>
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/queue_create.png)
 
 As we can see, our `hello_world` queue was created. Now let's map `data/generic/hello` topic to it.
 
@@ -445,7 +437,7 @@ As we can see, our `hello_world` queue was created. Now let's map `data/generic/
 
 There is not much to output but once again, you can confirm via PubSub+ UI. 
 
-<insert_topic_to_queue_mapping>
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/topic_to_queue_mapping.png)
 
 Let's rerun our example from previous example to publish data to the same topic (`data/generic/hello`) and see if it gets enqueued to our newly created queue.
 
@@ -458,7 +450,7 @@ Let's rerun our example from previous example to publish data to the same topic 
 
 Now, let's check our queue again and this time we have 1 message enqueued in our queue! 
 
-<insert_queue_with_message>
+![](https://github.com/himoacs/solace_kdb_whitepaper/blob/master/queue_with_message.png)
 
 We can now delete this queue by calling `.solace.destroyEndpoint` as shown in `[sol_endpoint_destroy.q](https://github.com/KxSystems/solace/blob/master/examples/sol_endpoint_destroy.q)`.
 
