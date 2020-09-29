@@ -16,13 +16,13 @@ Let's discuss both.
 
 We have all heard of monolithic applications. These are large pieces of software that barely had to worry about other applications and were mostly self-sufficient. Most, if not all of the business logic and interactions with other applications, was encapsulated in this one gigantic application. The monolithic application architecture had its advantages as it allowed you full control of the application without having to rely on other teams. It also simplified some things since your application didn't have to worry about interacting with other applications. When it came to deployment, all you had to do was roll out this one (albeit giant) piece of code. 
 
-However, as business and applications grew, the monolithic architecture started showing several pain points, especially that it did not scale very well. It were difficult to manage, troubleshoot, and deploy. Adding new features became a tedious and risky task as it put entire application at risk. 
+However, as business and applications grew, the monolithic architecture started showing several pain points, especially that it did not scale very well. It was difficult to manage, troubleshoot, and deploy. Adding new features became a tedious and risky task as it put the entire application at risk. 
 
 In the last few years, most companies have started decomposing monolithic applications into smaller components or services where each application aligns with a business line or a service. Several companies have broken down applications even further into microservices which are small scale applications meant to manage one task only.  
 
-As applications were broken down, there was a stronger demand for a way for them to interact with each other. Applications needed to communicate with other applications to share data and stay in sync. Earlier, a monolithic application could do everything itself, but now multiple applications needed to rely on each other and they had to share data to accomplish that. 
+As applications were broken down, there was a stronger demand for a way for them to interact with each other. Applications needed to communicate with other applications to share data and stay in sync. Before, a monolithic application could do everything itself, but now multiple applications need to rely on each other and they had to share data to accomplish that. 
 
-This is just one example of why applications need to talk to each other. There are many others but at the core of it, each system architecture consists of multiple types of applications - databases, caches, load balancers, API gateways etc, and they cannot exist in isolation. They need to talk to each other. Most applications need to store/retrieve data into/from a database. Most web applications are fronted with a load balancer that routes web traffic to different backend servers. These applications rely on communicating with each other to make the overall architecture work. 
+This is just one example of why applications need to talk to each other. There are many others but at the core of it, each system architecture consists of multiple types of applications - databases, caches, load balancers, API gateways etc, and they cannot exist in isolation. They need to talk to each other. Most applications need to store/retrieve data into/from a database. Most web applications are a fronted with a load balancer that routes web traffic to different backend servers. These applications rely on communicating with each other to make the overall architecture work. 
 
 But how do these applications communicate with each other? Let's take a look at common communication techniques and messaging patterns.
 
@@ -88,7 +88,7 @@ Asynchronous request/reply provides benefits of both bi-directional communicatio
 
 Now that we have covered the basics of different types of communication (synchronous vs asynchronous) and different messaging patterns (IPC and request/reply), let's turn our attention to a very popular messaging pattern known as publish/subscribe or commonly known as, pub/sub. 
 
-Pub/sub supports bi-directional asynchronous communication from many to many applications. It is commonly used to distribute data among numerous applications in enterprises. Pub/sub messaging pattern is implemented through the use of an event broker. In such an architecture, the event broker acts as an abstraction layer to decouple the publisher and consumers from each other. 
+Pub/sub supports bi-directional asynchronous communication from many to many applications. It is commonly used to distribute data among numerous applications in enterprises. The pub/sub messaging pattern is implemented through the use of an event broker. In such an architecture, the event broker acts as an abstraction layer to decouple the publisher and consumers from each other. 
 
 ![](pub_sub.png)
 
@@ -109,6 +109,7 @@ Both publishers and consumers only connect to the event broker instead of direct
 With so many different messaging patterns to choose from, why should you invest time and resources in adopting and implementing pub/sub messaging pattern in your architecture? Pub/sub has numerous advantages that make your architecture efficient, robust, reliable, scalable and cloud-ready. Let's dive deeper into how it does that.
 
 #### Efficient data distribution
+
 
 When you are dealing with low throughput with a handful of processes it is OK to simply use direct communication instead of over engineering it. For example, if you are publishing data notifications with 10 messages per day and you have 3 different teams interested in that data, you can afford to connect directly to those three consumers and send the same data three times. 
 
@@ -149,7 +150,7 @@ Integration is a critical advantage of using an event broker as it enables digit
 
 ## Using Pub/Sub with kdb+
 
-Now that we have a good understanding of how applications communicate with each other and how your architecture can benefit from using the popular pub/sub messaging pattern, it's time to look at pub/sub in the context of kdb+ architecture. 
+Now that we have a good understanding of how applications communicate with each other and how your architecture can benefit from using the popular pub/sub messaging pattern, it's time to look at pub/sub in the context of a kdb+ architecture. 
 
 kdb+, by Kx, is a powerful time-series database which allows users to store and analyze historical and real-time data. It's used in several different verticals, especially in financial services. A popular usecase is storing cross assets pricing data for global securities in kdb+. We will be expanding on this usecase to show how pub/sub messaging can enhance an existing kdb+ stack.
 
@@ -210,7 +211,7 @@ The *tick data* team can be just one of many downstream consumers interested in 
 
 The key idea here is that the publisher only has to worry about publishing data to the event broker and not get bogged down in the details of how many downstream consumers there are, what their subscription interests are, what protocol they want to use and so forth. This is all responsiblity of the event broker. Similarily, the subscribers don't need to worry about which publisher they need to connect to. They continue to connect to the same event broker and get access to realtime data. 
 
-Moreover, there are events that can lead to data spikes and impact applications. For example, market volumes were multiple times over their usual daily average in March 2020 during Covid-19. Anyone not using an event broker to manage data distribution would have been impacted with sudden spikes in data volume. Brokers provide shock absorption feature to make your architecture robust and resilient.
+Moreover, there are events that can lead to data spikes and impact applications. For example, market volumes were multiple times over their usual daily average in March 2020 during Covid-19. Anyone not using an event broker to manage data distribution would have been impacted with sudden spikes in data volume. Brokers provide shock absorption that deal with sudden spikes to make your architecture robust and resilient.
 
 
 #### Avoid tight coupling
@@ -234,7 +235,7 @@ This can be a blocker sometimes for other teams trying to retrieve data or write
 
 You might argue that your kdb+ stack is well contained and doesn't require much interaction with other applications, so it doesn't make sense to over engineer it. While that may be true, you should always ensure your architecture is flexible and future proof. If another team is interested in the data stored in your kdb+ database tomorrow, will they be able to easily retrieve it?
 
-For example, your company might have IoT devices producing a lot of timeseries data that needs to be captured in your kdb+ database. IoT devices typically use lightweight MQTT protocol to transfer events. Using an event broker that supports MQTT protocol would allow you to easily push data from your IoT devices to the event broker and then persist it in a kdb+ database to be analyzed in realtime or later. 
+For example, your company might have IoT devices producing a lot of timeseries data that needs to be captured in your kdb+ database. IoT devices typically use lightweight MQTT protocol to transfer events. Using an event broker that supports the MQTT protocol would allow you to easily push data from your IoT devices to the event broker and then persist it in a kdb+ database to be analyzed in realtime or later. 
 
 ![](integration.png)
 
@@ -248,13 +249,13 @@ While transferring market data using direct IPC connections might suffice, appli
 
 #### Global data distribution and data consolidation via event mesh
 
-Very rarely does data just sit in one local data center, especially at global financial firms using kdb+ for tick data store. As discussed earlier, there are feed handlers deployed globally, potentially collocated at popular exchanges. Some institutions even have their kdb+ instances collocated to capture the data in realtime with ultra-low latency, and then ship it back to their own datacenters. 
+Very rarely does data just sit in one local data center, especially at global financial firms using kdb+ for the tick data store. As discussed earlier, there are feed handlers deployed globally, potentially co-located at popular exchanges. Some institutions even have their kdb+ instances co-located to capture the data in realtime with ultra-low latency, and then ship it back to their own datacenters. 
 
 We all know that colocation is expensive so storing your tick data in a colo is not an inexpensive process, especially when eventually it needs to be shipped back to your datacenter to be analyzed or accessed by other applications. 
 
 A cost-effective alternative is to use event brokers deployed locally to form an **event mesh**. What is an event mesh? An event mesh is a configurable and dynamic infrastructure layer for distributing events among decoupled applications, cloud services and devices. It enables event communications to be governed, flexible, reliable and fast. An event mesh is created and enabled through a network of interconnected event brokers.
 
-Modern event brokers can be deployed in different regions (NY vs LDN) and environments (on-prem vs cloud) yet still be connected together to seamlessly move data from one environment in one regions such as a colo in New Jersey to a different environment in another region such as an AWS region in Singapore. 
+Modern event brokers can be deployed in different regions (NY vs LDN) and environments (on-prem vs cloud) yet still be connected together to seamlessly move data from one environment in one region such as a colo in New Jersey to a different environment in another region such as an AWS region in Singapore. 
 
 Using an event mesh to distribute your data out of colo to your own datacenter(s) in different regions provides you with a cost-effective way to store your tick data in your core tick data store in your datacenter instead of at colos. You can consolidate data from different colos in different regions into your central tick data store. 
 
@@ -518,7 +519,7 @@ Note, we can see different properties of the message such as payload, destinatio
 
 Instead of subscribing directly to a topic, we can bind to a queue with the topic mapped to it. Let's use the queue `hello_world` we created in previous section with our topic `data/generic/hello` mapped to it. 
 
-We can use example `[sol_sub_persist.q](https://github.com/KxSystems/solace/blob/master/examples/sol_sub_persist.q)` to bind to a queue. Note that this example is similar to `sol_sub_direct.q` but this time we need to send acknowledgement after receiving the message via `.solace.sendAck`. We can bind to a queue via `.solace.bindQueue`.
+We can use example `[sol_sub_persist.q](https://github.com/KxSystems/solace/blob/master/examples/sol_sub_persist.q)` to bind to a queue. Note that this example is similar to `sol_sub_direct.q` but this time we need to send an acknowledgement after receiving the message via `.solace.sendAck`. We can bind to a queue via `.solace.bindQueue`.
 
 ```
 (kdb) [ec2-user@ip-172-31-70-197 examples]$ q sol_sub_persist.q -dest "hello_world"
@@ -969,7 +970,7 @@ isRequest| 0b
 sendTime | 2000.01.01D00:00:00.000000000
 ```
 
-That's it for this example in which I showed how you can easily code a stats process that gets updates from PubSub+ event broker instead of a ticker plant or a realtime subscriber. This makes the stats process rely solely on the broker and not other *q* processes and hence, promotes a loosely coupled architecture. If in future you needed to add another stats process, you can do so effortlessly without modifying any existing processes. 
+That's it for this example in which I showed how you can easily code a stats process that gets updates from PubSub+ event broker instead of a ticker plant or a realtime subscriber. This makes the stats process rely solely on the broker and not other *q* processes and hence, promotes a loosely coupled architecture. If in the future you needed to add another stats process, you can do so effortlessly without modifying any existing processes. 
 
 Moreover, these processes can be deployed on-prem or on cloud since they can easily get the realtime data from PubSub+ brokers deployed in an event mesh configuration. The RDB process can be on-prem with the market data feed handlers whereas the stats process can be deployed in AWS. 
 
