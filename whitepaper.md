@@ -308,6 +308,8 @@ Here are some core features of Solace PubSub+:
 - **Event mesh** - distribute data dynamically across regions and environments by linking different PubSub+ brokers to form an event mesh.
 - **Flexible deployments** - deploy as appliance, software or managed service based on your requirements. 
 
+![Open APIs and Protocols supported by Solace PubSub+](open_apis_protocols.png)
+
 Recently, Kx open-sourced a [Solace interface to kdb+](https://code.kx.com/q/interfaces/solace/) as part of their Fusion Interfaces initiative. This interface or API makes it extremely easy to use PubSub+ event broker from within your *q* code. 
 
 Currently, the API supports:
