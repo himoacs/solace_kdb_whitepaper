@@ -137,7 +137,7 @@ Adding an event broker to your architecture can alleviate many of these concerns
 
 #### Integration
 
-As your business continues to grow, you overall architecture starts consisting of multiple components from different vendors. For example, you have an HR management system for your growing workforce to manage payroll, a payments system for managing transactions, a reporting system for daily/monthly/quarterly/annual reports, a ticketing system for customer support and many more. Each of these systems produces valuable data that needs to be shared with other services instead of kept in silos. For example, your payments data needs to be shared with the reporting system to generate reports. 
+As your business continues to grow, your overall architecture starts consisting of multiple components from different vendors. For example, you have an HR management system for your growing workforce to manage payroll, a payments system for managing transactions, a reporting system for daily/monthly/quarterly/annual reports, a ticketing system for customer support and many more. Each of these systems produces valuable data that needs to be shared with other services instead of kept in silos. For example, your payments data needs to be shared with the reporting system to generate reports. 
 
 Each of these systems can be written in different languages such as Java, Python, and C++. They might also support different messaging protocols such as AMQP and MQTT. How do you make sure you can easily leverage the data produced by these systems and make it available to any service that needs it. How do you break down these silos and liberate your data?
 
@@ -986,4 +986,4 @@ The Pub/sub messaging pattern via an event broker allows you to efficiently dist
 We explored all of these advantages using Solace's PubSub+ event broker and showed how you can use Kx's open-sourced API to bring the power of pub/sub messaging to kdb+.
 
 ### Author
-<TODO>
+Himanshu Gupta is currently a Solutions Architect at Solace. He has experience working at both buy and sell side as a tick data developer. In these roles, he has worked with popular timeseries databases, such as kdb+, to store and analyze real-time and historical financial market data.
