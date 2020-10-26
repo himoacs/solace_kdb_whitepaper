@@ -64,7 +64,7 @@ As applications scale, they are responsible for processing large quantities of m
 
 Queues are popular data structures used to order messages in sequence. Queue semantics make it a FIFO (First In First Out) data structure in which events are dequeued in the order they were enqueued. For example, if you have multiple transaction orders from 10:00am to 11:00am being enqueued in a queue, they will be consumed by a subscriber in that order starting with the first transaction at 10:00am. 
 
-![](queue.png)
+![](images/queue.png)
 
 Besides providing sequential ordering, queues are also known for providing persistence. A subscriber meant to process order transactions and persist them to a database might crash and not come back online for 10 minutes. The orders generated in those 10 minutes are still required to be processed albeit at a delay. A queue will persist those messages and make them available to the subscriber once it comes back online to avoid any data loss. 
 
@@ -76,7 +76,7 @@ Communication can be either unidirectional or bidirectional. The example in the 
 
 For such scenarios, there is asynchronous request/reply pattern which uses queues to store the requests and responses. In this version, the first application issues a request which is persisted in a queue for the second application to consume from. The payload of the message could contain a `replyTo` parameter which tells the second application which queue it should publish the response to. The first application is listening to the queue and consumes the message whenever it is available.
 
-![](request_reply.png)
+![](images/request_reply.png)
 
 Asynchronous request/reply provides benefits of both bi-directional communication and asynchronous messaging.
 
@@ -88,7 +88,7 @@ Now that we have covered the basics of different types of communication (synchro
 
 Pub/sub supports bi-directional asynchronous communication from many to many applications. It is commonly used to distribute data among numerous applications in enterprises. The pub/sub messaging pattern can be implemented through the use of an event broker. In such an architecture, the event broker acts as an abstraction layer to decouple the publisher and consumers from each other. 
 
-![](pub_sub.png)
+![](images/pub_sub.png)
 
 At a high level, the pub/sub messaging pattern consists of three components:
 1. publishers
@@ -215,7 +215,7 @@ Moreover, there are events that can lead to data spikes and impact applications.
 
 As discussed earlier, processes directly communicating with each other leads to a tightly coupled architecture where each process is dependent on one or more other processes. Such an architecture gets harder to maintain as it scales since it requires more coordination between processes. 
 
-![](tight_coupling.png)
+![](images/tight_coupling.png)
 
 In the context of kdb+, sharing data between your multiple tickerplants, RDBs and stats processes means they are dependent on each other. Stats process responsible for consuming raw data directly from a RDB and generating stats on that raw data makes it dependent on the RDB. If something were to happen to the RDB process, it will also impact the stats process. Additionally, if there was a change required in the RDB process, your developers will need to ensure that it doesn't impact any downstream processes that are dependent on the RDB process. This prevents you from making quick changes to your architecture. Each change that you do make introduces risks to downstream processes which is not desirable.
 
@@ -230,7 +230,7 @@ Most event brokers support a wide range of APIs and protocols which means differ
 
 For example, your company might have IoT devices producing a lot of timeseries data that needs to be captured in your kdb+ database. IoT devices typically use lightweight MQTT protocol to transfer events. Using an event broker that supports the MQTT protocol would allow you to easily push data from your IoT devices to the event broker and then persist it in a kdb+ database to be analyzed in realtime or later. 
 
-![](integration.png)
+![](images/integration.png)
 
 Using an event broker puts the kdb+ estate at the center of your big data ecosystem and allows different teams to leverage its capabilities by integrating with it. Don't let your kdb+ estate sit in isolation!  
 
@@ -252,11 +252,11 @@ Modern event brokers can be deployed in different regions (NY vs LDN) and enviro
 
 Using an event mesh to distribute your data out of colo to your own datacenter(s) in different regions provides you with a cost-effective way to store your tick data in your core tick data store in your datacenter instead of at colos. You can consolidate data from different colos in different regions into your central tick data store. 
 
-![](colo.png)
+![](images/colo.png)
 
 Conversely, you may want to localize your central tick data stores for your clients, such as researchers, spread across the globe to provide them with access to data locally and speed up their queries. Again, this can be done by distributing the data over an event mesh formed by event brokers deployed locally. 
 
-![](users.png)
+![](images/users.png)
 
 #### Cloud migration
 
@@ -264,7 +264,7 @@ In the last decade, there has been a strong push to adopt cloud across industrie
 
 With hybrid cloud, companies still have their own datacenter but limit its use to critical applications only. For non-critical applications, they have chosen to deploy their applications in the cloud. Other companies have decided to go with not just one but at least two cloud providers to avoid depending heavily on just one. As you can see, this adds more complexity on how data needs to be shared across an organization. No longer do you only have to worry about applications being deployed in different geographical regions but also across multiple environments. Again, this is where an event mesh (see above) can help. 
 
-![](kdb_event_mesh.png)
+![](images/kdb_event_mesh.png)
 
 As you decide to migrate your applications slowly from on-premises to the cloud, you will also need to run two instances of your application in parallel for some time period. Again, you can use event broker to share the data easily between the two processes in realtime. 
 
@@ -276,7 +276,7 @@ Ideally, data should only traverse from one environment to another if it is requ
 
 If you have worked with market data before, you know how expensive it can be and how many market data licenses you need to be aware of and navigate when providing users and applications access to real-time market data. Market data access is limited by strict licenses so one needs to be careful of not just which applications are using the data but who has **potential** access to the data to avoid fees by data vendors and exchanges. 
 
-![](acls.png)
+![](images/acls.png)
 
 Only the applications that require the data and are authorized to access the data should be able to consume that data. This is where *Access Control Lists (ACLs)* come in handy. Event brokers allow you to lock down exactly which applications have access to the data in a transparent manner. You can control what topics publishers can publish to and what topics subscribers can subscribe from to make sure no one is accessing any data they are not authorized to access. For example, if all the market data in our organization is published to topics of this topology: `EQ/{region}/{exchange}/{stock}` then we can restrict applications so they can only consume US's equities data by limiting them to only consume from `EQ/US/>` hierarchy. Additionally, I can provide a subscriber access to only data from New York Stock Exchange (NYSE) by only granting it access to topic: `EQ/US/NYSE/>`. 
 
@@ -296,7 +296,7 @@ Here are some core features of Solace PubSub+:
 - **In-memory/persistent messaging** - Use in-memory (direct) messaging for high throughput use-cases and persistent (guaranteed) messaging for critical messages such as *order data*. 
 - **Event mesh** - distribute data dynamically across regions and environments by linking different PubSub+ brokers to form an event mesh.
 
-![Open APIs and Protocols supported by Solace PubSub+](open_apis_protocols.png)
+![Open APIs and Protocols supported by Solace PubSub+](images/open_apis_protocols.png)
 
 Recently, Kx open-sourced a [kdb+ interface to Solace](https://code.kx.com/q/interfaces/solace/) as part of their Fusion Interfaces initiative. This interface or API makes it extremely easy to use PubSub+ event broker from within your *q* code. 
 
@@ -322,11 +322,11 @@ On Solace Cloud, we can create a free service very quickly by selecting the 'fre
 - Shared tenancy (as opposed to dedicated)
 - Single node deployment (as opposed to high availability)
 
-![](solace_cloud_create_service.png)
+![](images/solace_cloud_create_service.png)
 
 Because we have shared tenancy, the service will be up in just few seconds. 
 
-![](demo_service_overview.png)
+![](images/demo_service_overview.png)
 
 Now that we have a PubSub+ instance up and running, we are ready to install the kdb+ interface to Solace. 
 
@@ -345,7 +345,7 @@ But before we do that, let's first add our connection information to [sol_init.q
 
 You can find connection details for your Solace Cloud service under the `connect` tab:
 
-![](cloud_connection_settings.png)
+![](images/cloud_connection_settings.png)
 
 You will need `Username`, `Password`, `Message VPN`, and `SMF Host information`. Update the relevant values in `sol_init` with these details:
 
@@ -428,7 +428,7 @@ Let's create a queue called `hello_world`.
 
 We can confirm that our queue was created via PubSub+ UI. 
 
-![](queue_create.png)
+![](images/queue_create.png)
 
 As we can see, our `hello_world` queue was created. Now let's map the `data/generic/hello` topic to it.
 
@@ -439,7 +439,7 @@ As we can see, our `hello_world` queue was created. Now let's map the `data/gene
 
 There is not much to output but once again, you can confirm via PubSub+ UI. 
 
-![](topic_to_queue_mapping.png)
+![](images/topic_to_queue_mapping.png)
 
 Let's rerun our example from previous example to publish data to the same topic (`data/generic/hello`) and see if it gets enqueued to our newly created queue.
 
@@ -452,7 +452,7 @@ Let's rerun our example from previous example to publish data to the same topic 
 
 Now, let's check our queue again and this time we have 1 message enqueued in our queue. 
 
-![](queue_with_message.png)
+![](images/queue_with_message.png)
 
 We can now delete this queue by calling `.solace.destroyEndpoint` as shown in [sol_endpoint_destroy.q](https://github.com/KxSystems/solace/blob/master/examples/sol_endpoint_destroy.q).
 
