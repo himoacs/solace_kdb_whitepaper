@@ -154,7 +154,7 @@ kdb+, by Kx, is a powerful time-series database which allows users to store and 
 
 ### Overview of kdb+ architecture
 
-Before diving deeper into how pub/sub can compliment your kdb+ stack, let's make sure we understand what a typical kdb+ stack looks like. Consider a tick data team at an investment bank responsible for capturing, storing, and analyzing real-time global cross-asset data. 
+Before diving deeper into how pub/sub can complement your kdb+ stack, let's make sure we understand what a typical kdb+ stack looks like. Consider a tick data team at an investment bank responsible for capturing, storing, and analyzing real-time global cross-asset data. 
 
 Their stack will consist of multiple non-q and *q* processes: **feed handlers**, **tickerplants**, **realtime databases**, **stats processes**, **historical databases** and **API gateways**. Let's look at them briefly.
 
@@ -216,10 +216,8 @@ Moreover, there are events that can lead to data spikes and impact applications.
 As discussed earlier, processes directly communicating with each other leads to a tightly coupled architecture where each process is dependent on one or more other processes. Such an architecture gets harder to maintain as it scales since it requires more coordination between processes. 
 
 ![](tight_coupling.png)
-<!---
-    I'd expect the stats process to connect directly to the TP, not the RDB, so maybe we can edit the image and change the paragraph below
--->
-In the context of kdb+, sharing data between your multiple tickerplants, RDBs and stats processes means they are dependent on each other. Stats process responsible for consuming raw data directly from a TP and generating stats on that raw data makes it dependent on the TP. If something were to happen to TP process, it will also impact the stats process. Additionally, if there was a change required in the RDB process, your developers will need to ensure that it doesn't impact any downstream processes that are dependent on the RDB process. This prevents you from making quick changes to your architecture. Each change that you do make introduces risks to downstream processes which is not desirable.
+
+In the context of kdb+, sharing data between your multiple tickerplants, RDBs and stats processes means they are dependent on each other. Stats process responsible for consuming raw data directly from a RDB and generating stats on that raw data makes it dependent on the RDB. If something were to happen to the RDB process, it will also impact the stats process. Additionally, if there was a change required in the RDB process, your developers will need to ensure that it doesn't impact any downstream processes that are dependent on the RDB process. This prevents you from making quick changes to your architecture. Each change that you do make introduces risks to downstream processes which is not desirable.
 
 Instead, each *q* process, whether it be an RDB or stats process, can communicate via an event broker using the pub/sub messaging pattern. The tickerplant can publish data to the event broker without worrying about connection details of downstream subscribers and their subscriptions. Both RDB and stats process can subscribe for updates from the event broker without knowing a thing about the tickerplant. The stats process can generate minutely stats and then republish that data to event broker on a different topic allowing other processes to subscribe to those stats.
 
@@ -291,22 +289,16 @@ By now, we should have a good understanding of different messaging patterns such
 
 #### Solace PubSub+ event broker
 
-Not all brokers are created equally. Some are created to solve specific industry problems while others are more generic. Some support limited APIs and protocols while others support a wide range of open APIs and protocols. Some brokers only support pub/sub while others support point-to-point and request/reply as well. Some brokers can easily scale to support your business's growing demands while others simply cannot. Finally, some brokers can be used to create an **event mesh** whereas others don't support it. 
-
-Before picking a suitable broker for your kdb+ stack, make sure to gather all your requirements and cross reference them with all the features provided by different brokers. For this white paper, I have chosen Solace's PubSub+ broker which is heavily used in the financial services just like Kx's kdb+. It is also one of the few brokers available that supports open APIs and protocols, dynamic topics, wildcard filtering, and event mesh. Additionally, its support for high throughout messaging and low latency makes it a perfect companion for kdb+.
-
-PubSub+ can be deployed pretty much anywhere whether it be on-premises as a hardware appliance, software in a container, or on cloud as a managed service making it convenient for companies who are looking to migrate to cloud. 
+Before picking a suitable broker for your kdb+ stack, make sure to gather all your requirements and cross reference them with all the features provided by different brokers. For this white paper, I have chosen Solace's PubSub+ broker which is heavily used in the financial services just like Kx's kdb+. It supports open APIs and protocols, dynamic topics, wildcard filtering, and event mesh. Additionally, its support for high throughout messaging and low latency makes it a suitable companion for kdb+.
 
 Here are some core features of Solace PubSub+:
-- **Rich hierarchical dynamic topics/wildcard filtering** - PubSub+ topics are dynamic, so you don't need to manually create them making them low maintenance. They are also hierarchical which means consumers can use wildcards to filter data on each of the levels in the topic. 
-- **Open APIs and protocols** - avoid vendor lock-in by using open APIs and protocols such as JMS, AMQP, and MQTT among others.
+- **Rich hierarchical dynamic topics/wildcard filtering** - PubSub+ topics are dynamic, so you don't need to manually create them, thus making them low maintenance. They are also hierarchical which means consumers can use wildcards to filter data on each of the levels in the topic. 
 - **In-memory/persistent messaging** - Use in-memory (direct) messaging for high throughput use-cases and persistent (guaranteed) messaging for critical messages such as *order data*. 
 - **Event mesh** - distribute data dynamically across regions and environments by linking different PubSub+ brokers to form an event mesh.
-- **Flexible deployments** - deploy as appliance, software or managed service based on your requirements. 
 
 ![Open APIs and Protocols supported by Solace PubSub+](open_apis_protocols.png)
 
-Recently, Kx open-sourced a [kdb+ interface to Solace interface](https://code.kx.com/q/interfaces/solace/) as part of their Fusion Interfaces initiative. This interface or API makes it extremely easy to use PubSub+ event broker from within your *q* code. 
+Recently, Kx open-sourced a [kdb+ interface to Solace](https://code.kx.com/q/interfaces/solace/) as part of their Fusion Interfaces initiative. This interface or API makes it extremely easy to use PubSub+ event broker from within your *q* code. 
 
 Currently, the API supports:
 -  Connecting to a PubSub+ instance
@@ -336,7 +328,7 @@ Because we have shared tenancy, the service will be up in just few seconds.
 
 ![](demo_service_overview.png)
 
-Now that we have a PubSub+ instance up and running, we are ready to install the kdb+ interface to Solace interface. 
+Now that we have a PubSub+ instance up and running, we are ready to install the kdb+ interface to Solace. 
 
 The API is open sourced and available on [github](https://github.com/KxSystems/solace) with detailed instructions on how to install and get started. The API is available for `windows`, `mac`, and `linux`. I will be using it on an AWS EC2 instance. 
 
@@ -352,9 +344,7 @@ The API provides several useful examples to help you get started. To establish a
 But before we do that, let's first add our connection information to [sol_init.q](https://github.com/KxSystems/solace/blob/master/examples/sol_init.q). This file contains several initialization settings, including several connection defaults. It is also responsible for defining and registering several callback functions.
 
 You can find connection details for your Solace Cloud service under the `connect` tab:
-<!--
-    I'm assuming this particular solace service is not active? Would need to obfuscate the password if it is...
--->
+
 ![](cloud_connection_settings.png)
 
 You will need `Username`, `Password`, `Message VPN`, and `SMF Host information`. Update the relevant values in `sol_init` with these details:
@@ -390,7 +380,7 @@ As you can see from the output, we were able to register a session callback and 
 
 #### Publishing messages to PubSub+
 
-Now that we know we have setup everything correctly, we are ready to publish messages to PubSub+. In PubSub+, you can either publish to a topic or a queue. Publishing to a topic facilitates the pub/sub messaging pattern because it allows multiple subscribers to subscribe to the topic. Conversely, producing to a queue directly, limits only one consumer to consume from that queue and hence implements a point-to-point messaging pattern. Since we are more interested in the pub/sub messaging pattern, we will publish to a topic. 
+Now that we know we have setup everything correctly, we are ready to publish messages to PubSub+. In PubSub+, you can either publish to a topic or a queue. Publishing to a topic facilitates the pub/sub messaging pattern because it allows multiple subscribers to subscribe to the topic. Conversely, publishing to a queue allows only one consumer to consume from that queue and hence implements a point-to-point messaging pattern. Since we are more interested in the pub/sub messaging pattern, we will publish to a topic. 
 
 Additionally, PubSub+ offers two types of quality-of-service (QoS): *direct* and *persistent*. In *direct messaging*, messages are not persisted to disk and hence, are less reliable but offer higher throughput and lower latency. *Persistent messaging*, also known as *guaranteed messaging*, involves persistence and acknowledgements to guarantee zero end-to-end message loss. Because of additional overhead of persistence and acknowledgements, *guaranteed messaging* is more suitable for critical data distribution in low throughput use-cases. As an example, you should use *direct messaging* for market data distribution and *guaranteed messaging* for order flows.
 
@@ -684,7 +674,7 @@ subUpdate:{[dest;payload;dict]
     b:select "D"$date,"T"$time,sym:`$symbol,`$exchange,`$currency,askPrice,
       askSize,bidPrice,bidSize,tradePrice,tradeSize from b;
     // Insert into our global prices table
-    `prices  insert b;
+    `prices insert b;
     }
 
 // Assign callback function
@@ -738,7 +728,7 @@ As you can see, it is fairly simple to implement an RDB that consumes data from 
 
 #### Implementing a stats process
 
-Now that we have an RDB consuming raw market data updates, we would like to build a stats process that takes that raw data and generates some meaningful stats on it. The stats will be generated every minute and will only be for US securities. Because our publisher (market data simulator) is using a rich hierarchical topic, our stats process can filter on US equities data easily. Without this feature, we would have to consume market data for all equities and than filter them within our stats process. Instead we can same compute resources by subscribing to topic: `EQ/marketData/v1/US/>`. 
+Now that we have an RDB consuming raw market data updates, we would like to build a stats process that takes that raw data and generates some meaningful stats on it. The stats will be generated every minute and will only be for US securities. Because our publisher (market data simulator) is using a hierarchical topic, our stats process can filter on US equities data easily by subscribing to the topic: `EQ/marketData/v1/US/>`. 
 
 To make things more interesting, once the stats are generated every minute, we will publish them to PubSub+ for other downstream processes to consume. To make things more interesting again, we will also consume from a queue instead of subscribing to a topic.
 
@@ -783,7 +773,7 @@ subUpdate:{[dest;payload;dict]
     b:select "D"$date,"T"$time,sym:`$symbol,`$exchange,`$currency,askPrice,
       askSize,bidPrice,bidSize,tradePrice,tradeSize from b;
     // Insert into our global prices table
-    `prices  insert b;
+    `prices insert b;
     }
 ```
 
